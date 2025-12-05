@@ -341,3 +341,36 @@ g_dep23 <- ggplot(dep23, aes(x = factor("2023"), y = prop, fill = nivel)) +
 
 print(g_dep23)
 
+# --- Depressão (r205) vs Obesidade 
+dep23_obes <- dados_all %>%
+  dplyr::filter(ano == 2023) %>%
+  dplyr::mutate(
+    r205 = forcats::fct_relevel(r205, "não", "sim", "não lembra")  # ordem da legenda
+  ) %>%
+  dplyr::count(obesid_f, r205, name = "n") %>%
+  dplyr::group_by(obesid_f) %>%
+  dplyr::mutate(prop = n / sum(n)) %>%
+  dplyr::ungroup()
+
+g_dep23_obes <- ggplot(dep23_obes, aes(x = obesid_f, y = prop, fill = r205)) +
+  geom_col(width = 0.6) +
+  geom_text(aes(label = scales::percent(prop, accuracy = 1), group = r205),
+            position = position_stack(vjust = 0.5),
+            size = LABEL_SZ, fontface = "bold") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1),
+                     limits = c(0, 1), expand = expansion(mult = c(0, .02))) +
+  scale_fill_manual(values = c("não" = "#E15759", "sim" = "#4E79A7", "não lembra" = "#BAB0AC"),
+                    name = "Já teve depressão") +
+  labs(x = "Obesidade", y = "Proporção dentro do grupo") +
+  theme(
+    plot.title   = element_blank(),                 
+    axis.text.x  = element_text(size = AXIS_SZ + 2, face = "bold"),
+    axis.text.y  = element_text(size = AXIS_SZ),
+    axis.title.y = element_text(size = AXIS_SZ + 1, face = "bold")
+  )
+
+print(g_dep23_obes)
+ggsave(file.path(dir_out, "depressao_vs_obesidade_2023.png"),
+       g_dep23_obes, width = 8, height = 5, dpi = 300)
+
+
